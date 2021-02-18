@@ -1,0 +1,353 @@
+swagger: '2.0'
+info:
+  description: Документация дла тестового задания
+  version: 0.0.1
+  title: EON TEST API
+  contact:
+    name: Владислав
+    email: vladislav.reshetow@gmail.com
+host: eon.estate
+basePath: /api/v0
+tags:
+  - name: complexes
+    description: Комплексы
+  - name: regions
+    description: Регионы
+  - name: roomTypes
+    description: Комнатность
+  - name: subways
+    description: Станции метро
+  - name: search
+    description: Полнотекстовы поиск
+schemes:
+  - https
+paths:
+  /complexes:
+    get:
+      tags:
+        - complexes
+      summary: Возвращает комплексы
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: page
+          description: Страница выдачи
+          type: integer
+        - in: query
+          name: room_type_id
+          description: 'Id комнатности из запроса /room_types. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: subway_id
+          description: 'Id метро из запроса /subways. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: region_id
+          description: 'Id региона из запроса /regions. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: builder_id
+          description: 'Id застройщика из запроса /search. Можно передавать как 1 id, так и массив'
+          type: integer
+      responses:
+        '200':
+          description: Успешная операция
+          schema:
+            type: object
+            properties:
+              current_page:
+                type: integer
+                description: Текущая страница
+                example: 1
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Complex'
+              last_page:
+                type: integer
+                description: Последня страница
+                example: 4
+              per_page:
+                type: integer
+                description: Количество вернувшихся элементов
+                example: 50
+              total:
+                type: integer
+                description: Сколько всего найденных элементов
+                example: 245
+  /complexes/count:
+    get:
+      tags:
+        - complexes
+      summary: Возвращает количество комплексов и квартир в этих комплексах
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: room_type_id
+          description: 'Id комнатности из запроса /room_types. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: subway_id
+          description: 'Id метро из запроса /subways. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: region_id
+          description: 'Id региона из запроса /regions. Можно передавать как 1 id, так и массив'
+          type: integer
+        - in: query
+          name: builder_id
+          description: 'Id застройщика из запроса /search. Можно передавать как 1 id, так и массив'
+          type: integer
+      responses:
+        '200':
+          description: Успешная операция
+          schema:
+            type: object
+            properties:
+              complexes:
+                type: integer
+                description: Количество Комплексов по фильтру
+                example: 13
+              apartments:
+                type: integer
+                description: Количество квартир по фильтру
+                example: 86
+  /regions:
+    get:
+      tags:
+        - regions
+      summary: Получение всех регионов
+      description: Returns a map of status codes to quantities
+      responses:
+        '200':
+          description: Успешный запрос
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Region'
+  /room_types:
+    get:
+      tags:
+        - roomTypes
+      summary: Получение списка количества комнат
+      responses:
+        '200':
+          description: Успешный ответ
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RoomType'
+  /subways:
+    get:
+      tags:
+        - subways
+      summary: Получение списка станций метро
+      responses:
+        '200':
+          description: Успешный ответ
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Subway'
+  /search:
+    get:
+      tags:
+        - search
+      summary: Полнотекстовый поиск
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: value
+          description: 'Строка поиска, например "Ари"'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Search'
+definitions:
+  Region:
+    type: object
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: integer
+        example: 27
+      name:
+        type: string
+        example: Адмиралтейский р-н
+  RoomType:
+    type: object
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: integer
+        example: 0
+      name:
+        type: string
+        example: 2 ккв
+  Complex:
+    type: object
+    required:
+      - id
+      - name
+      - images
+      - subway
+      - alias
+      - builder
+      - apartments
+    properties:
+      id:
+        type: integer
+        description: Id комплекса
+        example: 2286
+      name:
+        type: string
+        description: Название комплекса
+        example: Маршал
+      alias:
+        type: string
+        description: Алиас для поиска комплекса
+        example: zhk-graf-orlov
+      images:
+        type: array
+        description: Массив с адресами кртинок
+        items:
+          type: object
+          description: Информация о картинке
+          properties:
+            is_main:
+              type: boolean
+              description: Флаг обозначающий главную картинку
+              example: false
+            filename:
+              type: string
+              description: 'Путь по которому лежит данная картинку. Полный путь формируется из https://eon.estate/static/images/ + данные из этого поля. Т.е. полный путь будет выглядеть вот так: https://eon.estate/static/images/site_61/de85c448e77c93a7b75f6bbaebf8e01b.jpg'
+              example: site_61/de85c448e77c93a7b75f6bbaebf8e01b.jpg
+      subway:
+        type: object
+        description: Объект метро
+        properties:
+          id:
+            type: integer
+            description: Id Метро
+            example: 6
+          time:
+            type: integer
+            description: Время до метро
+            example: 6
+          color:
+            type: string
+            description: Цвет линии метро
+            example: '#2F80ED'
+          name:
+            type: string
+            description: Название станции метро
+            example: Беговая
+          line:
+            type: integer
+            description: Номер линии метро
+            example: 2
+      builder:
+        type: object
+        description: Застройщик
+        properties:
+          id:
+            type: integer
+            description: Id Застройщика
+            example: 61
+          name:
+            type: string
+            description: Название застройщика
+            example: Л1
+      apartments:
+        type: array
+        description: Массив объектов cо стастикой по апартаментам
+        items:
+          type: object
+          description: Объект cо статистикой по апартаментам
+          properties:
+            price:
+              type: number
+              format: float
+              description: Минимальная цена за квартиру в млн-х
+              example: 9.7
+            s_from:
+              type: integer
+              description: Площадь квартиры от
+              example: 12
+            s_to:
+              type: string
+              description: Площадь квартиры до
+              example: 16
+            name:
+              type: string
+              description: Название комнатности
+              example: 1-к.кв
+            count:
+              type: integer
+              description: Количество квартир с такой комнатностью
+              example: 11
+  Subway:
+    type: object
+    description: Объект метро
+    properties:
+      id:
+        type: integer
+        description: Id Метро
+        example: 6
+      color:
+        type: string
+        description: Цвет линии метро
+        example: '#2F80ED'
+      name:
+        type: string
+        description: Название станции метро
+        example: Беговая
+      line:
+        type: integer
+        description: Номер линии метро
+        example: 2
+  Search:
+    type: object
+    description: Группа результата поиска поиска
+    properties:
+      entities:
+        type: array
+        description: Массив с фильтрами которые нужно помержить
+        items:
+          type: object
+          description: Объект с названием сущности и фильтром
+          properties:
+            filter:
+              type: object
+              description: 'Объект фильтра который нужно помержить с тем, что етсь на фронте и после отправить запрос на фильтрацию'
+              example:
+                complexes:
+                  alias: zhk-ariosto
+            name:
+              type: string
+              description: Название сущности
+              example: Ariosto
+      id:
+        type: integer
+        description: Id группы
+        example: 1
+      logo:
+        type: string
+        description: Путь до логотипа
+        example: filter/complex.png
+      name:
+        type: string
+        description: Название группы
+        example: Жилой комплекс
